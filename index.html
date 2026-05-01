@@ -241,8 +241,8 @@
         statusMsg.style.color = '#fbbf24';
 
         try {
-            // Note: Replace YOUR_API_URL with your actual server URL once deployed
-            const response = await fetch('YOUR_API_URL/download', {
+            // Sending request to your live Render server
+            const response = await fetch('https://yt-bqf7.onrender.com/download', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -259,8 +259,8 @@
                 statusMsg.textContent = '✅ Success! Downloading to your device...';
                 statusMsg.style.color = '#22c55e';
                 
-                // Redirect user to download the file directly from the server
-                window.location.href = `YOUR_API_URL/fetch-file/${encodeURIComponent(data.file_name)}`;
+                // Redirect user to download the file directly from the Render server
+                window.location.href = `https://yt-bqf7.onrender.com/fetch-file/${encodeURIComponent(data.file_name)}`;
             } else {
                 statusMsg.textContent = '❌ Error: ' + (data.error || 'Download failed.');
                 statusMsg.style.color = '#ef4444';
