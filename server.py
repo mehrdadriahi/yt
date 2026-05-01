@@ -19,23 +19,28 @@ def process_download():
     try:
         ydl_opts = {
             'outtmpl': f'{DOWNLOAD_FOLDER}/%(title)s.%(ext)s',
-            'quiet': True,
-            'restrictfilenames': True # جلوگیری از ارور نام‌های عجیب
+            'quiet': False,
+            'restrictfilenames': True,
+            'no_warnings': True
         }
+        
+        # در اینجا فرمت‌ها را ساده کردیم تا در سرورهای بدون کانورتور دچار ارور نشود
         if format_type == 'mp3':
-            ydl_opts['format'] = 'bestaudio[ext=m4a]/bestaudio'
+            ydl_opts['format'] = 'bestaudio/best'
         else:
-            ydl_opts['format'] = 'best'
+            ydl_opts['format'] = 'best[ext=mp4]/best'
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
-            # پیدا کردن نام دقیق فایلی که دانلود شده
             filename = os.path.basename(ydl.prepare_filename(info))
 
         return jsonify({"success": True, "file_name": filename})
 
     except Exception as e:
-        return jsonify({"error": "Download Failed."}), 500
+        # حالا ارور دقیق به سایت شما ارسال می‌شود
+        error_message = str(e)
+        print(f"ERROR: {error_message}")
+        return jsonify({"error": error_message}), 500
 
 @app.route('/fetch-file/<filename>', methods=['GET'])
 def fetch_file(filename):
