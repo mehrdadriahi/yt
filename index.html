@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Downloader | X & YouTube</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --yt-color: #ef4444;
+            --x-color: #1da1f2;
+            --btn-bg: #334155;
+            --btn-hover: #475569;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 450px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            padding: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            background-color: var(--btn-bg);
+            border-radius: 12px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            background: none;
+            color: var(--text-muted);
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active[data-target="youtube"] {
+            background-color: var(--yt-color);
+            color: white;
+        }
+
+        .tab-btn.active[data-target="x"] {
+            background-color: var(--x-color);
+            color: white;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .url-input {
+            width: 100%;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid var(--btn-bg);
+            background-color: var(--bg-color);
+            color: white;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .url-input:focus {
+            border-color: var(--text-muted);
+        }
+
+        .format-section {
+            margin-bottom: 25px;
+        }
+
+        .format-title {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .format-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .format-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid var(--btn-bg);
+            background-color: transparent;
+            color: var(--text-muted);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .format-btn.selected {
+            background-color: var(--text-main);
+            color: var(--bg-color);
+            border-color: var(--text-main);
+        }
+
+        .download-btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 10px;
+            background-color: #22c55e;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .download-btn:hover {
+            background-color: #16a34a;
+        }
+
+        .download-btn:disabled {
+            background-color: var(--btn-bg);
+            color: var(--text-muted);
+            cursor: not-allowed;
+        }
+
+        .status-message {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 14px;
+            min-height: 20px;
+            color: #fbbf24;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="tabs">
+        <button class="tab-btn active" data-target="youtube">YOUTUBE</button>
+        <button class="tab-btn" data-target="x">X (Twitter)</button>
+    </div>
+
+    <div class="input-group">
+        <label id="input-label" for="link">Enter YouTube video link:</label>
+        <input type="url" id="link" class="url-input" placeholder="https://www...">
+    </div>
+
+    <div class="format-section">
+        <div class="format-title">Select format and quality:</div>
+        <div class="format-buttons">
+            <button class="format-btn selected" data-format="mp4">MP4 (Video)</button>
+            <button class="format-btn" data-format="mp3">MP3 (Audio)</button>
+        </div>
+    </div>
+
+    <button id="download-action" class="download-btn">Start Download</button>
+    <div id="status" class="status-message"></div>
+</div>
+
+<script>
+    const tabs = document.querySelectorAll('.tab-btn');
+    const inputLabel = document.getElementById('input-label');
+    const urlInput = document.getElementById('link');
+    const formatBtns = document.querySelectorAll('.format-btn');
+    const downloadBtn = document.getElementById('download-action');
+    const statusMsg = document.getElementById('status');
+
+    let currentPlatform = 'youtube';
+    let currentFormat = 'mp4';
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            
+            currentPlatform = tab.getAttribute('data-target');
+            
+            if (currentPlatform === 'youtube') {
+                inputLabel.textContent = 'Enter YouTube video link:';
+            } else {
+                inputLabel.textContent = 'Enter X (Twitter) post link:';
+            }
+            urlInput.value = '';
+            statusMsg.textContent = '';
+        });
+    });
+
+    formatBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            formatBtns.forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            currentFormat = btn.getAttribute('data-format');
+        });
+    });
+
+    downloadBtn.addEventListener('click', async () => {
+        const link = urlInput.value.trim();
+        
+        if (!link) {
+            statusMsg.textContent = 'Please enter a link first!';
+            statusMsg.style.color = '#ef4444';
+            return;
+        }
+
+        downloadBtn.disabled = true;
+        downloadBtn.textContent = 'Processing...';
+        statusMsg.textContent = 'Connecting to server...';
+        statusMsg.style.color = '#fbbf24';
+
+        try {
+            // Note: Replace YOUR_API_URL with your actual server URL once deployed
+            const response = await fetch('YOUR_API_URL/download', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    url: link,
+                    format: currentFormat
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                statusMsg.textContent = '✅ Success! Downloading to your device...';
+                statusMsg.style.color = '#22c55e';
+                
+                // Redirect user to download the file directly from the server
+                window.location.href = `YOUR_API_URL/fetch-file/${encodeURIComponent(data.file_name)}`;
+            } else {
+                statusMsg.textContent = '❌ Error: ' + (data.error || 'Download failed.');
+                statusMsg.style.color = '#ef4444';
+            }
+
+        } catch (error) {
+            statusMsg.textContent = '❌ Connection Error! Is the server running?';
+            statusMsg.style.color = '#ef4444';
+        } finally {
+            downloadBtn.disabled = false;
+            downloadBtn.textContent = 'Start Download';
+        }
+    });
+</script>
+
+</body>
+</html>
